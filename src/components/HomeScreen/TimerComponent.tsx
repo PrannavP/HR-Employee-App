@@ -1,64 +1,60 @@
-import { Text } from "react-native";
-import { getSyncedTime } from "../../services/api";
-import { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { View, Text, StyleSheet } from "react-native";
 
 interface TimerComponentProps {
-    emp_id: number;
+	emp_id: number;
+	checkInTime: string; // ISO string
 }
 
-const TimerComponent: React.FC<TimerComponentProps> = ({ emp_id}) => {
-    const [duration, setDuration] = useState<string>("00:00:00");
-    const [syncedTime, setSyncedTime] = useState<string | null>(null);
+const TimerComponent: React.FC<TimerComponentProps> = ({
+	emp_id,
+	checkInTime,
+}) => {
+	const [elapsedTime, setElapsedTime] = useState("");
 
-    useEffect(() => {
-        const getTimer = async() => {
-            try{
-                const response = await getSyncedTime(emp_id);
-                if(response.status === 200){
-                    setSyncedTime(response.data.getTimerData.check_in_time);
-                }else{
-                    console.log("Response status is not ok.");
-                }
-            }catch(error){
-                console.log("Error fetching synced time: ", error);
-            }
-        };
+	useEffect(() => {
+		const interval = setInterval(() => {
+			const start = new Date(checkInTime).getTime();
+			const now = new Date().getTime();
+			const diff = now - start;
 
-        getTimer();
-    }, [emp_id]);
+			const hours = Math.floor(diff / (1000 * 60 * 60));
+			const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+			const seconds = Math.floor((diff % (1000 * 60)) / 1000);
 
-    useEffect(() => {
-        if(!syncedTime) return;
+			const formatted = `${String(hours).padStart(2, "0")}:${String(
+				minutes
+			).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
 
-        const updateDuration = () => {
-            const now = new Date();
-            const pastTime = new Date(syncedTime);
-            const diffMs = now.getTime() - pastTime.getTime();
+			setElapsedTime(formatted);
+		}, 1000);
 
-            const totalSeconds = Math.floor(diffMs / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
+		return () => clearInterval(interval);
+	}, [checkInTime]);
 
-            const formattedTime = [
-                hours.toString().padStart(2, "0"),
-                minutes.toString().padStart(2, "0"),
-                seconds.toString().padStart(2, "0"),
-            ].join(":");
-
-            setDuration(formattedTime);
-        };
-
-        updateDuration();
-
-        const interval = setInterval(updateDuration, 1000);
-        
-        return () => clearInterval(interval);
-    }, [syncedTime]);
-
-    return(
-        <Text>{duration}</Text>
-    );
+	return (
+		<View style={styles.timerContainer}>
+			<Text style={styles.timerLabel}>Active Time</Text>
+			<Text style={styles.timerText}>{elapsedTime}</Text>
+		</View>
+	);
 };
+
+const styles = StyleSheet.create({
+	timerContainer: {
+		alignItems: "center",
+		marginBottom: 16,
+	},
+	timerLabel: {
+		fontSize: 16,
+		color: "#6b7280",
+		marginBottom: 4,
+	},
+	timerText: {
+		fontSize: 32,
+		fontWeight: "bold",
+		color: "#1f2937",
+	},
+});
 
 export default TimerComponent;
