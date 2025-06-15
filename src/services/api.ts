@@ -6,14 +6,25 @@ const API_URL = "http://192.168.1.2:5000/api";
 export const checkIn = async (
 	latitude: number,
 	longitude: number,
-	emp_id: string
+	emp_id: string,
+	uid: number
 ) => {
-	return axios.post(`${API_URL}/checkin`, { latitude, longitude, emp_id });
+	console.log(`latitude: ${latitude}`);
+	console.log(`longitude: ${longitude}`);
+	console.log(`empid: ${emp_id}`);
+	console.log(`id: ${uid}`);
+
+	return axios.post(`${API_URL}/checkin`, {
+		latitude,
+		longitude,
+		emp_id,
+		uid,
+	});
 };
 
 // checkout api endpoint
-export const checkOut = async (emp_id: string) => {
-	return axios.post(`${API_URL}/checkout`, { emp_id });
+export const checkOut = async (emp_id: string, uid: number) => {
+	return axios.post(`${API_URL}/checkout`, { emp_id, uid });
 };
 
 // employee login endpoint
@@ -53,7 +64,7 @@ export const leaveRequest = async (
 
 // employee view their leave requests
 export const fetchLeaveRequests = async (emp_table_id: string) => {
-	return axios.post(`${API_URL}/get-leaves`, { emp_table_id });
+	return axios.get(`${API_URL}/get-leaves/${emp_table_id}`);
 };
 
 // employee profile endpoint
